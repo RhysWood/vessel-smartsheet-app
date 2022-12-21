@@ -11,8 +11,8 @@ const transporter = nodemailer.createTransport({
 });
 
 const mailOptions = {
-    from: 'no-reply-vesselpackaging@outlook.com',
-    to: 'rhys.wood@vesselpackaging.com',
+    from: process.env.host_email,
+    to: process.env.reciever_email,
     subject: 'Sending Email using Node.js',
     text: 'It worked!',
     attachments: [{

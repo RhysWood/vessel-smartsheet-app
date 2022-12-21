@@ -33,38 +33,41 @@ const options = {
     }
 };
 
-
-  // Get attachment
-smartsheet.sheets.getAttachment({sheetId: process.env.sheet_id, attachmentId: 1717701161576324})
-.then(function(attachment) {
-    // console.log(attachment)
-    const url = attachment.url;
-
-    https.get(url, (res) => {
-    const path = "downloaded-image.pdf";
-    const writeStream = fs.createWriteStream(path);
-
-   res.pipe(writeStream);
-
-   writeStream.on("finish", () => {
-      writeStream.close();
-      console.log("Download Completed!");
-   })
-})
-})
-.then(function() {
-    const sendEmail = function(){
-    transporter.sendMail(mailOptions, function(error, info){
-        if (error) {
-          console.log(error);
-        } else {
-          console.log('Email sent: ' + info.response);
+smartsheet.sheets.getSheet({id: process.env.sheet_id, includeAll: true})
+      .then(function(sheetInfo) {
+        const row_id = sheetInfo.rows[0].id;
+        return smartsheet.sheets.getRowAttachments({sheetId: process.env.sheet_id, rowId: row_id})
+      }).then(function(attachment){
+        const attachment_id = attachment.data[0].id;
+        return smartsheet.sheets.getAttachment({sheetId: process.env.sheet_id, attachmentId: attachment_id})
+    }).then(function(attachment) {
+        // console.log(attachment)
+        const url = attachment.url;
+    
+        https.get(url, (res) => {
+        const path = "downloaded-image.pdf";
+        const writeStream = fs.createWriteStream(path);
+    
+       res.pipe(writeStream);
+    
+       writeStream.on("finish", () => {
+          writeStream.close();
+          console.log("Download Completed!");
+       })
+    })
+    })
+    .then(function() {
+        const sendEmail = function(){
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Email sent: ' + info.response);
+            }
+          });
         }
-      });
-    }
-    setTimeout(sendEmail, 1500);
-})
-.catch(function(error) {
-    console.log(error);
-});
-
+        setTimeout(sendEmail, 1500);
+    })
+    .catch(function(error) {
+        console.log(error);
+    });
